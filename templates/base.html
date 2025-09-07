@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>首页 - 隐私数据管理平台</title>
+
+    <!-- 你的样式和图标（保持原有结构与选择器） -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_base.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+{# Toast 容器：统一放在 base.html，所有页面都能用 #}
+<div class="toast-stack">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="toast {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+</div>
+
+{# 可选：自动移除 DOM（不写也行，仅用于更干净） #}
+<script>
+    setTimeout(() => {
+        document.querySelectorAll('.toast').forEach(t => t.classList.add('toast--closing'));
+        setTimeout(() => document.querySelectorAll('.toast').forEach(t => t.remove()), 400);
+    }, 3600);
+</script>
+
+
+<!-- 侧边栏：沿用你原页面结构/类名，样式匹配 style.css -->
+<div class="sidebar">
+    <div class="sidebar-header">
+        <button class="toggle-btn"><i class="fas fa-bars"></i></button>
+        <div class="sidebar-logo">隐私数据管理平台</div>
+    </div>
+    <ul class="sidebar-menu">
+        <li><a href="{{ url_for('dashboard') }}"><i class="fas fa-home"></i><span>首页</span></a></li>
+        <li><a href="#"><i class="fas fa-tasks"></i><span>任务管理</span></a></li>
+        <li><a href="#"><i class="fas fa-database"></i><span>数据管理</span></a></li>
+        <li><a href="#"><i class="fas fa-chart-bar"></i><span>信息展示</span></a></li>
+        <li><a href="#"><i class="fas fa-question-circle"></i><span>用户指南</span></a></li>
+    </ul>
+</div>
+
+<!-- 主体区域 -->
+<div class="main-content">
+    <div class="container">
+        <header>
+            <h1>用户中心</h1>
+        </header>
+
+        <!-- 仅做一次的全局提示（可选） -->
+{#        {% with msgs = get_flashed_messages() %}#}
+{#            {% if msgs %}#}
+{#                <ul style="margin: 10px 0 20px; color:#c00;">#}
+{#                    {% for m in msgs %}#}
+{#                        <li>{{ m }}</li>{% endfor %}#}
+{#                </ul>#}
+{#            {% endif %}#}
+{#        {% endwith %}#}
+
+        <!-- ========== 个人中心（所有用户可见） ========== -->
+        <section class="data-section" style="margin-top:10px;">
+            <h2 class="section-title">个人中心</h2>
+
+            <!-- 基本信息 -->
+            <div style="margin-bottom:16px; color:#555;">
+                <div style="margin-bottom:6px;">用户名：<strong>{{ current_user.username }}</strong></div>
+                <div>当前邮箱：<strong>{{ current_user.email }}</strong></div>
+            </div>
+
+            <!-- 修改资料 -->
+            <form method="post" action="{{ url_for('users.update_profile') }}" style="margin-bottom:20px;">
+                <div class="input-group" style="margin-bottom:10px;">
+                    <label for="email">新邮箱</label>
+                    <input id="email" name="email" placeholder="请输入新邮箱" value="{{ current_user.email }}">
+                </div>
+                <button type="submit" class="browse-btn">保存资料</button>
+            </form>
+
+            <!-- 修改密码 -->
+            <form method="post" action="{{ url_for('users.change_password') }}">
+                <div class="input-group" style="margin-bottom:10px;">
+                    <label for="old_password">旧密码</label>
+                    <input id="old_password" type="password" name="old_password" placeholder="请输入旧密码" required>
+                </div>
+                <div class="input-group" style="margin-bottom:10px;">
+                    <label for="new_password">新密码</label>
+                    <input id="new_password" type="password" name="new_password" placeholder="请输入新密码" required>
+                </div>
+                <button type="submit" class="upload-btn"><i class="fas fa-key"></i> 修改密码</button>
+            </form>
+
+            <!-- 退出登录 -->
+            <form method="post" action="{{ url_for('auth.logout') }}" style="margin-top:20px;">
+                <button type="submit"
+                        style="background-color:#c82333; color:white; border:none; padding:8px 14px;
+                         border-radius:4px; cursor:pointer;">
+                    <i class="fas fa-sign-out-alt"></i> 退出登录
+                </button>
+            </form>
+
+
+            {% if error %}
+                <p style="color:#c00; margin-top:8px;">{{ error }}</p>
+            {% endif %}
+        </section>
+
+        <!-- ========== 用户管理（仅管理员可见） ========== -->
+        {% if current_user.has_role('admin') %}
+            <section class="data-section" style="margin-top:40px;">
+                <h2 class="section-title">用户管理（管理员）</h2>
+
+                <!-- 创建用户 -->
+                <form class="js-create" method="post"
+                      action="{{ url_for('admin.create_user') }}" style="margin-bottom:20px;">
+                    <div class="input-group" style="margin-bottom:10px;">
+                        <label for="new_username">用户名</label>
+                        <input id="new_username" name="username" placeholder="请输入新用户用户名" required>
+                    </div>
+                    <div class="input-group" style="margin-bottom:10px;">
+                        <label for="new_email">邮箱</label>
+                        <input id="new_email" name="email" placeholder="请输入新用户邮箱" required>
+                    </div>
+                    <div class="input-group" style="margin-bottom:10px;">
+                        <label for="init_pwd">初始密码</label>
+                        <input id="init_pwd" name="password" placeholder="可留空，默认 Init123!">
+                    </div>
+                    <button class="upload-btn"><i class="fas fa-user-plus"></i> 创建用户</button>
+                </form>
+
+                <!-- 用户列表 -->
+                <table class="data-table">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>用户名</th>
+                        <th id="base_email_col">邮箱</th>
+                        <th>角色</th>
+                        <th id="base_conduct_col">操作</th>
+                        <th id="base_delete_col">删除</th>  <!-- 新增列 -->
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for u in users or [] %}
+                        <tr data-uid="{{ u.id }}">
+                            <td>{{ u.id }}</td>
+                            <td>{{ u.username }}</td>
+                            <td>{{ u.email }}</td>
+
+                            <td class="role-cell">{{ u.roles | map(attribute='name') | join(', ') }}</td>
+
+                            <!-- 原有“操作”列 -->
+                            <td>
+                                <!-- 赋权 -->
+                                <form class="js-grant" data-uid="{{ u.id }}" method="post"
+                                      action="{{ url_for('admin.grant', uid=u.id) }}"
+                                      style="display:inline-flex; align-items:center; margin-right:8px;">
+                                    <select name="role">
+                                        {% for r in roles or [] %}
+                                            <option value="{{ r.name }}">{{ r.name }}</option>{% endfor %}
+                                    </select>
+                                    <button class="page-btn" style="margin-left:6px;">赋权</button>
+                                </form>
+
+                                <!-- 回收 -->
+                                <form class="js-revoke" data-uid="{{ u.id }}"  method="post"
+                                      action="{{ url_for('admin.revoke', uid=u.id) }}"
+                                      style="display:inline-flex; align-items:center; margin-right:8px;">
+                                    <select name="role">
+                                        {% for r in roles or [] %}
+                                            <option value="{{ r.name }}">{{ r.name }}</option>{% endfor %}
+                                    </select>
+                                    <button class="page-btn" style="margin-left:6px;">回收</button>
+                                </form>
+
+                                <!-- 重置密码 -->
+                                <form class="js-reset" data-uid="{{ u.id }}"  method="post"
+                                      action="{{ url_for('admin.reset', uid=u.id) }}"
+                                      style="display:inline-flex; margin-left:6px;">
+                                    <input name="new_password" placeholder="新密码">
+                                    <button class="page-btn">重置密码</button>
+                                </form>
+                            </td>
+
+                            <!-- 新增“删除”列（独立一列，靠右对齐） -->
+                            <td class="op-delete">
+                                <form class="js-delete" data-uid="{{ u.id }}" method="post"
+                                      action="{{ url_for('admin.delete', uid=u.id) }}"
+                                      onsubmit="return confirm('确认删除用户 {{ u.username }} ？');">
+                                    <button type="submit"
+                                            class="btn-danger"
+                                            {% if u.id == current_user.id %}disabled title="不能删除自己"{% endif %}>
+                                        删除用户
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+
+            </section>
+        {% endif %}
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='script_base.js') }}"></script>
+
+</body>
+</html>

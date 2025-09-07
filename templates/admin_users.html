@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+    <h2>用户管理</h2>
+
+    <h3>创建用户</h3>
+    <form method="post" action="{{ url_for('admin.create_user') }}">
+        <input name="username" placeholder="用户名"/>
+        <input name="email" placeholder="邮箱"/>
+        <input name="password" placeholder="初始密码(可留空)"/>
+        <button>创建</button>
+    </form>
+
+    <h3>用户列表</h3>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>用户名</th>
+            <th>邮箱</th>
+            <th>角色</th>
+            <th>操作</th>
+        </tr>
+        {% for u in users|sort(attribute='id') %}
+            <tr>
+                <td>{{ u.id }}</td>
+                <td>{{ u.username }}</td>
+                <td>{{ u.email }}</td>
+                <td>{{ u.roles | map(attribute='name') | join(', ') }}</td>
+                <td>
+                    <form method="post" action="{{ url_for('admin.grant', uid=u.id) }}" style="display:inline">
+                        <select name="role">
+                            {% for r in roles %}
+                                <option value="{{ r.name }}">{{ r.name }}</option>{% endfor %}
+                        </select>
+                        <button>赋权</button>
+                    </form>
+                    <form method="post" action="{{ url_for('admin.revoke', uid=u.id) }}" style="display:inline">
+                        <select name="role">
+                            {% for r in roles %}
+                                <option value="{{ r.name }}">{{ r.name }}</option>{% endfor %}
+                        </select>
+                        <button>回收</button>
+                    </form>
+                    <form method="post" action="{{ url_for('admin.reset', uid=u.id) }}" style="display:inline">
+                        <input name="new_password" placeholder="新密码"/>
+                        <button>重置密码</button>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}

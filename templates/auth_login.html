@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>隐私数据管理平台 - 登录</title>
+
+    <!-- 图标库（CDN 保持不变） -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- 你的样式：改为 Flask 的静态资源引用 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_login.css') }}">
+</head>
+<body>
+{#  <!-- 侧栏（沿用你原页面结构与样式） -->#}
+{#  <div class="sidebar">#}
+{#    <div class="sidebar-header">#}
+{#      <button class="toggle-btn">#}
+{#        <i class="fas fa-chevron-left"></i>#}
+{#      </button>#}
+{#      <div class="sidebar-logo">隐私数据管理平台</div>#}
+{#    </div>#}
+{#    <ul class="sidebar-menu">#}
+{#      <li><a href="#"><i class="fas fa-home"></i><span>首页</span></a></li>#}
+{#      <li><a href="#"><i class="fas fa-tasks"></i><span>任务管理</span></a></li>#}
+{#      <li><a href="#"><i class="fas fa-database"></i><span>数据管理</span></a></li>#}
+{#      <li><a href="#"><i class="fas fa-chart-bar"></i><span>结果展示</span></a></li>#}
+{#      <li><a href="#"><i class="fas fa-question-circle"></i><span>用户帮助</span></a></li>#}
+{#    </ul>#}
+{#  </div>#}
+
+<!-- 主内容区域 -->
+<div class="main-content">
+    <div class="login-container">
+        <h1>隐私数据管理平台</h1>
+
+        <!-- 错误提示（与后端 render_template 里的 error / flash 对齐） -->
+        {% if error %}
+            <p style="color:#c00; margin: 8px 0 16px;">{{ error }}</p>
+        {% endif %}
+        {% with msgs = get_flashed_messages() %}
+            {% if msgs %}
+                <ul style="color:#c00; margin: 8px 0 16px;">
+                    {% for m in msgs %}
+                        <li>{{ m }}</li>{% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
+        <!-- 登录表单：改为POST到后端 /auth/login（login_post 处理） -->
+        <form method="post" action="{{ url_for('auth.login_post') }}">
+            <div class="input-group">
+                <label for="username">用户名</label>
+                <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        placeholder="请输入用户名"
+                        required
+                        value="{{ request.form.username or '' }}"
+                >
+            </div>
+
+            <div class="input-group">
+                <label for="password">密码</label>
+                <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="请输入密码"
+                        required
+                >
+            </div>
+
+            <div class="button-group">
+                <button type="submit">登录</button>
+                <!-- 注册按钮：若暂不开放，可先禁用或跳转到 /auth/register（之后实现） -->
+                <button type="button" disabled title="请联系管理员创建账号">注册</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 你的脚本：改为 Flask 的静态资源引用 -->
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
